@@ -1,0 +1,3 @@
+[submodule "diphirgym/thirparties/pybullet-gym"]
+	path = diphirgym/thirparties/pybullet-gym
+	url = https://github.com/Near32/pybullet-gym
