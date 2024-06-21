@@ -1,0 +1,2 @@
+from diphirgym.envs.inverted_double_pendulum import InvertedDoublePendulumDIPhiREnv
+from diphirgym.envs.inverted_pendulum import InvertedPendulumDIPhiREnv
