@@ -1,5 +1,6 @@
 import diphirgym
 import diphirgym.thirdparties.pybulletgym
+import os
 import gym
 import numpy as np
 
@@ -18,18 +19,35 @@ def test_logs_inverted_pendulum():
         env.close()
 
 def test_logs_diphir_inverted_pendulum():
-        env = gym.make('InvertedPendulumDIPhiREnv-v0')
+        # Open a file for logging
+        log_file = open("simulation_trace.log", "w")
+
+        env = gym.make('InvertedPendulumDIPhiREnv-v0',
+            output_dir=os.path.join(os.getcwd(), 'data'),
+            obfuscate_logs=False,
+        )
         env.render(mode='human')
-        env.reset()
-        for _ in range(250): 
+        state, info = env.reset()
+        loglist = info['logs']
+        log = '\n'.join(['\n'.join(l) for l in loglist])
+        print(log)
+        log_file.write(log) 
+        for _ in range(2000): 
             action = np.zeros(env.action_space.shape) 
+            #action = env.action_space.sample()
             state, reward, done, truncated, info = env.step(action)
             loglist = info['logs']
-            print('\n'.join(['\n'.join(l) for l in loglist])) 
+            log = '\n'.join(['\n'.join(l) for l in loglist])
+            print(log)
+            log_file.write(log) 
             if done:
                 print('Episode finished after {} timesteps'.format(env.nbr_time_steps)) 
-                break #env.reset()
+                #break #env.reset()
         env.close()
+
+        # Close the file
+        log_file.close()
+
 
 def test_obfuscated_logs_inverted_pendulum():
         env = gym.make('InvertedPendulumSwingupPyBulletEnv-v0', obfuscate_logs=True)
@@ -52,7 +70,11 @@ def test_logs_diphir_inverted_double_pendulum():
 
         env = gym.make('InvertedDoublePendulumDIPhiREnv-v0',obfuscate_logs=False)
         env.render(mode='human')
-        env.reset()
+        state, info = env.reset()
+        loglist = info['logs']
+        log = '\n'.join(['\n'.join(l) for l in loglist])
+        print(log)
+        log_file.write(log) 
         for _ in range(250): 
             action = np.zeros(env.action_space.shape) 
             #action = env.action_space.sample()
@@ -75,7 +97,11 @@ def test_logs_inverted_double_pendulum():
 
         env = gym.make('InvertedDoublePendulumPyBulletEnv-v0', obfuscate_logs=False)
         env.render(mode='human')
-        env.reset()
+        state, info = env.reset()
+        loglist = info['logs']
+        log = '\n'.join(['\n'.join(l) for l in loglist])
+        print(log)
+        log_file.write(log) 
         for _ in range(250): 
             action = np.zeros(env.action_space.shape) 
             #action = env.action_space.sample()
@@ -98,7 +124,11 @@ def test_obfuscated_logs_inverted_double_pendulum():
 
         env = gym.make('InvertedDoublePendulumPyBulletEnv-v0', obfuscate_logs=True)
         env.render(mode='human')
-        env.reset()
+        state, info = env.reset()
+        loglist = info['logs']
+        log = '\n'.join(['\n'.join(l) for l in loglist])
+        print(log)
+        log_file.write(log) 
         for _ in range(250): 
             #action = np.zeros(env.action_space.shape) 
             action = env.action_space.sample()
@@ -117,8 +147,8 @@ def test_obfuscated_logs_inverted_double_pendulum():
 
 if __name__ == '__main__':
     #test_logs_inverted_pendulum()
-    #test_logs_diphir_inverted_pendulum()
+    test_logs_diphir_inverted_pendulum()
     #test_obfuscated_logs_inverted_pendulum()
-    test_logs_diphir_inverted_double_pendulum()
+    #test_logs_diphir_inverted_double_pendulum()
     #test_logs_inverted_double_pendulum()
     #test_obfuscated_logs_inverted_double_pendulum()
