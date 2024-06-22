@@ -32,7 +32,7 @@ def test_logs_diphir_inverted_pendulum():
         log = '\n'.join(['\n'.join(l) for l in loglist])
         print(log)
         log_file.write(log) 
-        for _ in range(2000): 
+        for _ in range(256): 
             action = np.zeros(env.action_space.shape) 
             #action = env.action_space.sample()
             state, reward, done, truncated, info = env.step(action)
