@@ -13,7 +13,7 @@ def read_requirements(file_path):
         return [line.strip() for line in file if line.strip() and not line.startswith('#')]
 
 def get_submodules_requirements():
-    pybulletgym_requirements = read_requirements('./diphirgym/thirdparties/pybulletgym/requirements.txt')
+    pybulletgym_requirements = read_requirements('./diphyrgym/thirdparties/pybulletgym/requirements.txt')
     return list(pybulletgym_requirements))
 
 class PreInstallCommand(install):
@@ -41,12 +41,12 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as readme:
 
 
 setup(
-    name='DPhiR-Gym',
+    name='DPhyR-Gym',
     version='0.1',
     description='An OpenAI Gym environment to investigate Deliberate & Intuitive Physics Reasonings.',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    url='https://github.com/Near32/DIPhiR-Gym',
+    url='https://github.com/Near32/DIPhyR-Gym',
     author='Kevin Denamganai',
     author_email='denamganai.kevin@gmail.com',
 

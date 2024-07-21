@@ -1,5 +1,5 @@
-import diphirgym
-import diphirgym.thirdparties.pybulletgym
+import diphyrgym
+import diphyrgym.thirdparties.pybulletgym
 import os
 import gym
 import numpy as np
@@ -18,7 +18,7 @@ def test_logs_inverted_pendulum():
                 break #env.reset()
         env.close()
 
-def test_logs_diphir_offline_inverted_pendulum():
+def test_logs_diphyr_offline_inverted_pendulum():
         # Open a file for logging
         log_file = open("simulation_trace.log", "w")
 
@@ -71,5 +71,5 @@ def test_obfuscated_logs_inverted_pendulum():
 
 if __name__ == '__main__':
     #test_logs_inverted_pendulum()
-    test_logs_diphir_offline_inverted_pendulum()
+    test_logs_diphyr_offline_inverted_pendulum()
     #test_obfuscated_logs_inverted_pendulum()
