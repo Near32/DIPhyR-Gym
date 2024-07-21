@@ -32,9 +32,11 @@ class InvertedPendulumDIPhiREnv(BaseBulletEnv):
         self, 
         model_xml=os.path.join(os.path.dirname(__file__), "../xmls/inverted_pendulum.xml"), 
         output_dir='/tmp/DIPhiR/inverted_pendulum', 
+        show_phase_space_diagram=False,
         **kwargs,
     ):
         self.timestamp = None
+        self.show_phase_space_diagram = show_phase_space_diagram
         self.randomised_model_xml = None
         self.phase_space_csv = None
         
@@ -173,6 +175,7 @@ class InvertedPendulumDIPhiREnv(BaseBulletEnv):
         self.save_data() 
         self.ps_img = update_plot(unwrap_angles(self.ps_xs), self.ps_vxs, self.ps_fig, ax=self.ps_ax)#self.ps_line)
         self.ps_img.save('inverted_pendulum.png', format='PNG')
-        self.ps_img.show()
+        if self.show_phase_space_diagram or self.isRender:
+            self.ps_img.show()
         BaseBulletEnv.close(self)
 

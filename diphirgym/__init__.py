@@ -16,6 +16,15 @@ for n in range(2,10):
     )
 '''
 
+## offline pendula
+register(
+	id='OfflineInvertedPendulumDIPhiREnv-v0',
+	entry_point='diphirgym.envs.offline_inverted_pendulum:OfflineInvertedPendulumDIPhiREnv',
+	max_episode_steps=1000,
+	reward_threshold=950.0,
+  order_enforce=False,
+	)
+
 ## pendula
 register(
 	id='InvertedPendulumDIPhiREnv-v0',
