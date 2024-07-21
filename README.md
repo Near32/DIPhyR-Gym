@@ -1,4 +1,4 @@
-# [DIPhiR-Gym](https://github.com/kyd500/DIPhiR-Gym)
+# [DIPhyR-Gym](https://github.com/kyd500/DIPhyR-Gym)
 An OpenAI Gym environment to investigate Deliberate & Intuitive Physics Reasonings.
 
 At each reset, each environment will randomise some hyperparameters of its related base MuJoCo XML config file, yielding a similar environment with different boundary conditions, such as initial linear/angular velocities of the different rigid bodies, and inertial properties.
@@ -27,7 +27,7 @@ Or manually:
 
 ```bash
 git submodule update --init --recursive
-pip install -r diphirgym/thirdparties/pybulletgym/requirements.txt
+pip install -r diphyrgym/thirdparties/pybulletgym/requirements.txt
 python setup.py manual_develop_install
 ```
 
@@ -37,8 +37,8 @@ python setup.py manual_develop_install
 For instance, with the inverted pendulum environment, you can run the following code in order to see non-obfuscated logs and have the phase space data along with the randomised MuJoCo XML config files saved to disk in a new `data` folder at your current working directory:
 
 ```python
-import diphirgym
-env = gym.make('InvertedPendulumDIPhiREnv-v0',
+import diphyrgym
+env = gym.make('InvertedPendulumDIPhyREnv-v0',
     output_dir=os.path.join(os.getcwd(), 'data'),
     obfuscate_logs=False,
 )
