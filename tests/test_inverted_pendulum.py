@@ -27,7 +27,8 @@ def test_logs_diphir_inverted_pendulum():
             obfuscate_logs=False,
         )
         env.render(mode='human')
-        state, info = env.reset()
+        # Fixing the seed:
+        state, info = env.reset(**{'seed': 0})
         loglist = info['logs']
         log = '\n'.join(['\n'.join(l) for l in loglist])
         print(log)
