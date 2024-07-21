@@ -14,7 +14,7 @@ def read_requirements(file_path):
 
 def get_submodules_requirements():
     pybulletgym_requirements = read_requirements('./diphyrgym/thirdparties/pybulletgym/requirements.txt')
-    return list(pybulletgym_requirements))
+    return list(pybulletgym_requirements)
 
 class PreInstallCommand(install):
     def run(self):
@@ -41,7 +41,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as readme:
 
 
 setup(
-    name='DPhyR-Gym',
+    name='DIPhyR-Gym',
     version='0.1',
     description='An OpenAI Gym environment to investigate Deliberate & Intuitive Physics Reasonings.',
     long_description=long_description,
