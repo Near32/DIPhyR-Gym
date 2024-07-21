@@ -24,18 +24,22 @@ def test_logs_diphir_offline_inverted_pendulum():
 
         env = gym.make('OfflineInvertedPendulumDIPhiREnv-v0',
             max_nbr_actions=10,
-            max_nbr_time_steps=256,
+            max_nbr_time_steps=16,
+            timestep=0.0165,
+            frame_skip=16,
             output_dir=os.path.join(os.getcwd(), 'data'),
             obfuscate_logs=False,
             show_phase_space_diagram=True,
         )
         # Fixing the seed:
-        state, info = env.reset(**{'seed': 32})
+        state, info = env.reset(**{'seed': 132})
         
         loglist = info['logs']
         log = '\n'.join(['\n'.join(l) for l in loglist])
         #print(log)
         log_file.write(log) 
+        
+        print(f"Prompt BT shape is {info['prompt'].shape}")
         
         action = np.zeros(env.action_space.shape) 
         #action = env.action_space.sample()

@@ -37,18 +37,24 @@ class OfflineInvertedPendulumDIPhiREnv(gym.Env):
         self, 
         max_nbr_actions=10,
         max_nbr_time_steps=100,
+        timestep=0.0165,
+        frame_skip=1,
         model_xml=os.path.join(os.path.dirname(__file__), "../xmls/inverted_pendulum.xml"), 
         output_dir='/tmp/DIPhiR/inverted_pendulum', 
         **kwargs,
     ):
         super().__init__()
         self.max_nbr_time_steps = max_nbr_time_steps
+        self.timestep = timestep
+        self.frame_skip = frame_skip
         # Number of times the pendulum can change orientation:
         self.max_nbr_actions = max_nbr_actions
         
         self.inverted_pendulum_env = InvertedPendulumDIPhiREnv(
             model_xml=model_xml, 
             output_dir=output_dir, 
+            timestep=self.timestep,
+            frame_skip=self.frame_skip,
             **kwargs,
         )
         
@@ -105,7 +111,7 @@ class OfflineInvertedPendulumDIPhiREnv(gym.Env):
         # Add prompt+options:
         collated_info['prompt'] = self._generate_prompt_options(collated_info['log'])
         self.info = collated_info
-        return tuple([self.obs, self.info])    
+        return tuple([self.obs.astype(np.float32), self.info])    
 
     def step(self, a, **kwargs):
         '''
@@ -119,7 +125,7 @@ class OfflineInvertedPendulumDIPhiREnv(gym.Env):
         self.reward = 1 if predicted_nbr_rotation_changes == self.nbr_rotation_changes else -1
         done = True
 
-        return self.obs, self.reward, done, False, self.info
+        return self.obs.astype(np.float32), self.reward, done, False, self.info
 
     def close(self, **kwargs):
         self.inverted_pendulum_env.close() 

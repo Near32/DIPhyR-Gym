@@ -66,9 +66,9 @@ class InvertedPendulumDIPhiREnv(BaseBulletEnv):
         BaseBulletEnv.__init__(self, self.robot, **kwargs)
         self.stateId = -1
 
-    def create_single_player_scene(self, bullet_client):
-        return SingleRobotEmptyScene(bullet_client, gravity=9.8, timestep=0.0165, frame_skip=1)
-    
+    def create_single_player_scene(self, bullet_client, timestep=0.0165, frame_skip=1):
+        return SingleRobotEmptyScene(bullet_client, gravity=9.8, timestep=timestep, frame_skip=frame_skip)
+
     def save_data(self):
         data = {'theta': self.ps_xs, 'theta_dot': self.ps_vxs}
         df = pd.DataFrame(data)
