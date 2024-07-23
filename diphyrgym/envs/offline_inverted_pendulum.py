@@ -10,10 +10,9 @@ import numpy as np
 from diphyrgym.envs.inverted_pendulum import InvertedPendulumDIPhiREnv
 
 
-def STR2BT(sentences):
+def STR2BT(sentences, max_sentence_length=0):
     if isinstance(sentences, str):
         sentences = [sentences]
-    max_sentence_length = 0
     btss = []
     for s in sentences:
         bts = np.asarray(list(bytes(s, 'utf-8')), dtype=np.uint8)
@@ -39,6 +38,7 @@ class OfflineInvertedPendulumDIPhiREnv(gym.Env):
         max_nbr_time_steps=100,
         timestep=0.0165,
         frame_skip=1,
+        max_sentence_length=16384,
         model_xml=os.path.join(os.path.dirname(__file__), "../xmls/inverted_pendulum.xml"), 
         output_dir='/tmp/DIPhiR/inverted_pendulum', 
         **kwargs,
@@ -47,6 +47,7 @@ class OfflineInvertedPendulumDIPhiREnv(gym.Env):
         self.max_nbr_time_steps = max_nbr_time_steps
         self.timestep = timestep
         self.frame_skip = frame_skip
+        self.max_sentence_length = max_sentence_length 
         # Number of times the pendulum can change orientation:
         self.max_nbr_actions = max_nbr_actions
         
@@ -80,7 +81,7 @@ class OfflineInvertedPendulumDIPhiREnv(gym.Env):
             opt_sentence = "[OPTION]".join(self.options[pidx])
             opt_sentences.append(opt_prompt+opt_sentence)
     
-        self.bt_opt_sentences = STR2BT(opt_sentences)
+        self.bt_opt_sentences = STR2BT(opt_sentences, max_sentence_length=self.max_sentence_length)
         return self.bt_opt_sentences
     
     def seed(self, seed=None):
