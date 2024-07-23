@@ -35,7 +35,7 @@ class OfflineInvertedPendulumDIPhiREnv(gym.Env):
     def __init__(
         self, 
         max_nbr_actions=10,
-        max_nbr_time_steps=100,
+        max_nbr_timesteps=10,
         timestep=0.0165,
         frame_skip=1,
         max_sentence_length=16384,
@@ -44,7 +44,7 @@ class OfflineInvertedPendulumDIPhiREnv(gym.Env):
         **kwargs,
     ):
         super().__init__()
-        self.max_nbr_time_steps = max_nbr_time_steps
+        self.max_nbr_timesteps = max_nbr_timesteps
         self.timestep = timestep
         self.frame_skip = frame_skip
         self.max_sentence_length = max_sentence_length 
@@ -95,7 +95,7 @@ class OfflineInvertedPendulumDIPhiREnv(gym.Env):
         # Collect infos and pendulum's angular velocity:
         infos = []
         theta_dots = []
-        for t in range(self.max_nbr_time_steps):
+        for t in range(self.max_nbr_timesteps):
             a = np.zeros(self.inverted_pendulum_env.action_space.shape)
             self.obs, reward, done, truncation, info = self.inverted_pendulum_env.step(a)
             theta_dots.append(self.inverted_pendulum_env.robot.theta_dot) 

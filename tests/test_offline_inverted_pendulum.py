@@ -24,7 +24,7 @@ def test_logs_diphyr_offline_inverted_pendulum():
 
         env = gym.make('OfflineInvertedPendulumDIPhiREnv-v0',
             max_nbr_actions=10,
-            max_nbr_time_steps=16,
+            max_nbr_timesteps=16,
             timestep=0.0165,
             frame_skip=16,
             max_sentence_length=16384,
