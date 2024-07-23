@@ -34,7 +34,7 @@ def test_logs_diphyr_offline_inverted_pendulum():
         # Fixing the seed:
         state, info = env.reset(**{'seed': 132})
         
-        loglist = info['logs']
+        loglist = info['extras']['logs']
         log = '\n'.join(['\n'.join(l) for l in loglist])
         #print(log)
         log_file.write(log) 

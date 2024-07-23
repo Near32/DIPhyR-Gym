@@ -83,6 +83,11 @@ class OfflineInvertedPendulumDIPhiREnv(gym.Env):
         self.bt_opt_sentences = STR2BT(opt_sentences)
         return self.bt_opt_sentences
     
+    def seed(self, seed=None):
+        self.np_random, seed = seeding.np_random(seed)
+        self.inverted_pendulum_env.seed(seed)
+        return [seed]
+ 
     def reset(self, **kwargs):
         self.obs, self.info = list(self.inverted_pendulum_env.reset(**kwargs))
 
@@ -102,14 +107,14 @@ class OfflineInvertedPendulumDIPhiREnv(gym.Env):
 
         # Check last info contains logs:
         collated_info = {}
-        collated_info['logs'] = []
+        collated_info['extras'] = {'logs': []}
         for info in infos: 
             for log in info['logs']: 
-                collated_info['logs'].append(log)
-        collated_info['log'] = '\n'.join(['\n'.join(l) for l in collated_info['logs']])
+                collated_info['extras']['logs'].append(log)
+        collated_info['extras']['log'] = '\n'.join(['\n'.join(l) for l in collated_info['extras']['logs']])
 
         # Add prompt+options:
-        collated_info['prompt'] = self._generate_prompt_options(collated_info['log'])
+        collated_info['prompt'] = self._generate_prompt_options(collated_info['extras']['log'])
         self.info = collated_info
         return tuple([self.obs.astype(np.float32), self.info])    
 
