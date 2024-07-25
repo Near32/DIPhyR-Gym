@@ -117,6 +117,12 @@ class OfflineInvertedPendulumDIPhiREnv(gym.Env):
         # Add prompt+options:
         collated_info['prompt'] = self._generate_prompt_options(collated_info['extras']['log'])
         self.info = collated_info
+        self.info['predicted_answer'] = -1 
+        self.info['groundtruth_answer'] = self.nbr_rotation_changes 
+        
+        action_mask=np.zeros((1, self.action_space.n))
+        self.info['action_mask'] = action_mask
+        self.info['legal_actions'] = action_mask
         return tuple([self.obs.astype(np.float32), self.info])    
 
     def step(self, a, **kwargs):
@@ -125,8 +131,8 @@ class OfflineInvertedPendulumDIPhiREnv(gym.Env):
         Else, returns -1.
         '''
         predicted_nbr_rotation_changes = a
-        self.info['predicted_nbr_rotation_changes'] = predicted_nbr_rotation_changes
-        self.info['groundtruth_nbr_rotation_changes'] = self.nbr_rotation_changes 
+        self.info['predicted_answer'] = predicted_nbr_rotation_changes
+        self.info['groundtruth_answer'] = self.nbr_rotation_changes 
         self.info['rotation_change_indices'] = self.rotation_change_indices
         self.reward = 1 if predicted_nbr_rotation_changes == self.nbr_rotation_changes else -1
         done = True

@@ -23,7 +23,7 @@ def test_logs_diphyr_offline_inverted_pendulum():
         log_file = open("simulation_trace.log", "w")
 
         env = gym.make('OfflineInvertedPendulumDIPhiREnv-v0',
-            max_nbr_actions=10,
+            max_nbr_actions=5, #10,
             max_nbr_timesteps=16,
             timestep=0.0165,
             frame_skip=16,
@@ -45,7 +45,7 @@ def test_logs_diphyr_offline_inverted_pendulum():
         action = np.zeros(env.action_space.shape) 
         #action = env.action_space.sample()
         state, reward, done, truncated, info = env.step(action)
-        print(f"Predicted vs groundtruth number of rotation changes: {info['predicted_nbr_rotation_changes']} vs {info['groundtruth_nbr_rotation_changes']}")
+        print(f"Predicted vs groundtruth number of rotation changes: {info['predicted_answer']} vs {info['groundtruth_answer']}")
         print(f'Angular velocity change timesteps: {info["rotation_change_indices"]}')
         print('Environment reward: ', reward) 
         env.close()
