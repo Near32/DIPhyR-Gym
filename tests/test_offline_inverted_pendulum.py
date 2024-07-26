@@ -26,11 +26,12 @@ def test_logs_diphyr_offline_inverted_pendulum():
             max_nbr_actions=5, #10,
             max_nbr_timesteps=16,
             timestep=0.0165,
-            frame_skip=16,
-            max_sentence_length=16384,
+            frame_skip=24,
+            max_sentence_length=1024, #16384,
             output_dir=os.path.join(os.getcwd(), 'data'),
             obfuscate_logs=False,
             show_phase_space_diagram=True,
+            minimal_logs=True,
         )
         # Fixing the seed:
         state, info = env.reset(**{'seed': 132})
