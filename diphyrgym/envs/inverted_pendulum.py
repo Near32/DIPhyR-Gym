@@ -97,7 +97,6 @@ class InvertedPendulumDIPhiREnv(BaseBulletEnv):
             self.save_data()
         self.timestamp = datetime.now().strftime("%Y%m%d_%H%M%S") if self.save_metadata else 'latest'
         self.randomized_model_xml = os.path.join(self.output_dir, f"xmls/ip.{self.timestamp}.xml") 
-        print(self.output_dir)
         randomize_MJCF(
             base_filepath=self.model_xml,
             output_filepath=self.randomized_model_xml,
@@ -118,7 +117,7 @@ class InvertedPendulumDIPhiREnv(BaseBulletEnv):
         ) 
         self.robot = InvertedPendulum(model_xml=self.randomized_model_xml) 
         self.robot.np_random = self.np_random
-        #BaseBulletEnv.__init__(self, self.robot, **self.kwargs)
+        BaseBulletEnv.__init__(self, self.robot, **self.kwargs)
         # We cannot restore anymore because the model is randomized
         '''
         if self.stateId >= 0:
