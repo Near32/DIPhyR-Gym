@@ -33,13 +33,15 @@ class InvertedPendulumDIPhiREnv(BaseBulletEnv):
         model_xml=os.path.join(os.path.dirname(__file__), "../xmls/inverted_pendulum.xml"), 
         output_dir='/tmp/DIPhiR/inverted_pendulum', 
         show_phase_space_diagram=False,
+        save_metadata=False,
         **kwargs,
     ):
         self.timestamp = None
         self.show_phase_space_diagram = show_phase_space_diagram
         self.randomised_model_xml = None
         self.phase_space_csv = None
-        
+        self.save_metadata = save_metadata
+
         self.model_xml = model_xml
         self.output_dir = output_dir
         self.xml_dir = os.path.join(self.output_dir, 'xmls')
@@ -48,18 +50,18 @@ class InvertedPendulumDIPhiREnv(BaseBulletEnv):
         os.makedirs(self.phase_space_dir, exist_ok=True)
         os.makedirs(self.xml_dir, exist_ok=True)
 
-        
-        self.json_file_path = os.path.join(self.output_dir, 'metadata.json')
-        # Load or initialize the metadata JSON file
-        if os.path.exists(self.json_file_path):
-            try:
-                with open(self.json_file_path, 'r') as json_file:
-                    self.metadata = json.load(json_file)
-            except json.JSONDecodeError as e:
-                print(f"Error decoding JSON file: {e}")
+        if self.save_metadata: 
+            self.json_file_path = os.path.join(self.output_dir, 'metadata.json')
+            # Load or initialize the metadata JSON file
+            if os.path.exists(self.json_file_path):
+                try:
+                    with open(self.json_file_path, 'r') as json_file:
+                        self.metadata = json.load(json_file)
+                except json.JSONDecodeError as e:
+                    print(f"Error decoding JSON file: {e}")
+                    self.metadata = {}
+            else:
                 self.metadata = {}
-        else:
-            self.metadata = {}
         
         self.robot = InvertedPendulum(model_xml=model_xml)
         self.kwargs = kwargs
@@ -91,9 +93,9 @@ class InvertedPendulumDIPhiREnv(BaseBulletEnv):
             json.dump(self.metadata, json_file, indent=4)
     
     def _reset(self, **kwargs):
-        if hasattr(self, 'ps_xs'):
+        if self.save_metadata and hasattr(self, 'ps_xs'):
             self.save_data()
-        self.timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.timestamp = datetime.now().strftime("%Y%m%d_%H%M%S") if self.save_metadata else 'latest'
         self.randomized_model_xml = os.path.join(self.output_dir, f"xmls/ip.{self.timestamp}.xml") 
         randomize_MJCF(
             base_filepath=self.model_xml,
@@ -127,19 +129,20 @@ class InvertedPendulumDIPhiREnv(BaseBulletEnv):
             self.stateId = self._p.saveState()
         # print("InvertedPendulumBulletEnv reset self.stateId=",self.stateId)
         # Phase Space Diagram GUI:
-        self.ps_xs = []
-        self.ps_vxs = [] 
-        # Setup matplotlib figure
-        self.ps_fig, self.ps_ax = plt.subplots(figsize=(6, 4), dpi=100)
-        #self.ps_ax.set_xlim(-np.pi, np.pi)
-        #self.ps_ax.set_ylim(-10, 10)
-        self.ps_ax.set_title('Phase Space Diagram: Cartpole')
-        self.ps_ax.set_xlabel('Pole Angle (radians)')
-        self.ps_ax.set_ylabel('Pole Angular Velocity (radians/s)')
-        self.ps_ax.grid(True)
-        
+        if self.show_phase_space_diagram: 
+            self.ps_xs = []
+            self.ps_vxs = [] 
+            # Setup matplotlib figure
+            self.ps_fig, self.ps_ax = plt.subplots(figsize=(6, 4), dpi=100)
+            #self.ps_ax.set_xlim(-np.pi, np.pi)
+            #self.ps_ax.set_ylim(-10, 10)
+            self.ps_ax.set_title('Phase Space Diagram: Cartpole')
+            self.ps_ax.set_xlabel('Pole Angle (radians)')
+            self.ps_ax.set_ylabel('Pole Angular Velocity (radians/s)')
+            self.ps_ax.grid(True)
+            
         return r
-
+    
     def _step(self, a):
         self.robot.apply_action(a)
         self.scene.global_step()
@@ -163,8 +166,9 @@ class InvertedPendulumDIPhiREnv(BaseBulletEnv):
         angle = self.robot.theta
         pole_angle = math.atan2(math.sin(angle), math.cos(angle))
         pole_angular_velocity = self.robot.theta_dot
-        self.ps_xs.append(pole_angle)
-        self.ps_vxs.append(pole_angular_velocity)
+        if self.show_phase_space_diagram: 
+            self.ps_xs.append(pole_angle)
+            self.ps_vxs.append(pole_angular_velocity)
  
         return state, sum(self.rewards), done, {}
 
@@ -172,10 +176,11 @@ class InvertedPendulumDIPhiREnv(BaseBulletEnv):
         self.camera.move_and_look_at(0, 1.2, 1.0, 0, 0, 0.5, distance=40, yaw=0, pitch=0)
 
     def close(self, **kwargs):
-        self.save_data() 
-        self.ps_img = update_plot(unwrap_angles(self.ps_xs), self.ps_vxs, self.ps_fig, ax=self.ps_ax)#self.ps_line)
-        self.ps_img.save('inverted_pendulum.png', format='PNG')
-        if self.show_phase_space_diagram or self.isRender:
+        if self.save_metadata:
+            self.save_data() 
+        if self.show_phase_space_diagram:
+            self.ps_img = update_plot(unwrap_angles(self.ps_xs), self.ps_vxs, self.ps_fig, ax=self.ps_ax)#self.ps_line)
+            self.ps_img.save('inverted_pendulum.png', format='PNG')
             self.ps_img.show()
         BaseBulletEnv.close(self)
 
