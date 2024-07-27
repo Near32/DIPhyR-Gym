@@ -31,7 +31,7 @@ class InvertedPendulumDIPhiREnv(BaseBulletEnv):
     def __init__(
         self, 
         model_xml=os.path.join(os.path.dirname(__file__), "../xmls/inverted_pendulum.xml"), 
-        output_dir='/tmp/DIPhiR/inverted_pendulum', 
+        output_dir='/run/user/1000/DIPhiR/inverted_pendulum', 
         show_phase_space_diagram=False,
         save_metadata=False,
         **kwargs,
@@ -97,6 +97,7 @@ class InvertedPendulumDIPhiREnv(BaseBulletEnv):
             self.save_data()
         self.timestamp = datetime.now().strftime("%Y%m%d_%H%M%S") if self.save_metadata else 'latest'
         self.randomized_model_xml = os.path.join(self.output_dir, f"xmls/ip.{self.timestamp}.xml") 
+        print(self.output_dir)
         randomize_MJCF(
             base_filepath=self.model_xml,
             output_filepath=self.randomized_model_xml,

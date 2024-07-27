@@ -40,7 +40,7 @@ class OfflineInvertedPendulumDIPhiREnv(gym.Env):
         frame_skip=1,
         max_sentence_length=16384,
         model_xml=os.path.join(os.path.dirname(__file__), "../xmls/inverted_pendulum.xml"), 
-        output_dir='/tmp/DIPhiR/inverted_pendulum', 
+        output_dir='/run/user/1000/DIPhiR/inverted_pendulum', 
         **kwargs,
     ):
         super().__init__()
