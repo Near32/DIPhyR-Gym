@@ -35,7 +35,6 @@ class OfflineInvertedPendulumDIPhiREnv(gym.Env):
     def __init__(
         self, 
         max_nbr_actions=10,
-        max_nbr_timesteps=10,
         timestep=0.0165,
         frame_skip=1,
         max_sentence_length=16384,
@@ -44,7 +43,6 @@ class OfflineInvertedPendulumDIPhiREnv(gym.Env):
         **kwargs,
     ):
         super().__init__()
-        self.max_nbr_timesteps = max_nbr_timesteps
         self.timestep = timestep
         self.frame_skip = frame_skip
         self.max_sentence_length = max_sentence_length 
@@ -63,6 +61,9 @@ class OfflineInvertedPendulumDIPhiREnv(gym.Env):
         self.action_space = spaces.Discrete(n=self.max_nbr_actions)
     
     def _generate_prompt_options(self, logs):
+        ''' 
+        WARNING: excluding 0 again 
+        '''
         prompt = f"[INST]\n{logs}\n"
         prompt += f"Given the simulation trace above, answer the following question:"
         prompt += "Question: How many times did the pendulum change its direction of rotation?\n"
@@ -71,7 +72,7 @@ class OfflineInvertedPendulumDIPhiREnv(gym.Env):
         
         self.options = [[
             f'Answer: {x} time{"s" if x>1 else ""}.'
-            for x in range(0, self.max_nbr_actions)
+            for x in range(1, self.max_nbr_actions) # excluding 0 here
             ],
         ]
         
@@ -90,26 +91,55 @@ class OfflineInvertedPendulumDIPhiREnv(gym.Env):
         return [seed]
  
     def reset(self, **kwargs):
+        '''
+        WARNING: excluding option 0 
+        '''
+        desired_nbr_rotation_changes = self.np_random.integers(1, self.max_nbr_actions+1)
+        offset_nbr_rotation_changes = self.np_random.integers(0, self.max_nbr_actions+1)
+        
         self.obs, self.info = list(self.inverted_pendulum_env.reset(**kwargs))
 
         # Collect infos and pendulum's angular velocity:
         infos = []
         theta_dots = []
-        for t in range(self.max_nbr_timesteps):
+        self.nbr_rotation_changes = 0
+        while self.nbr_rotation_changes < desired_nbr_rotation_changes + offset_nbr_rotation_changes:    
             a = np.zeros(self.inverted_pendulum_env.action_space.shape)
             self.obs, reward, done, truncation, info = self.inverted_pendulum_env.step(a)
             theta_dots.append(self.inverted_pendulum_env.robot.theta_dot) 
             infos.append(info)
         
-        # Compute how many times did the pendulum change direction of rotation: 
-        theta_dots = np.array(theta_dots)
-        self.rotation_change_indices = np.where(theta_dots[:-1] * theta_dots[1:] < 0)[0]
-        self.nbr_rotation_changes = len(self.rotation_change_indices)
+            # Compute how many times did the pendulum change direction of rotation: 
+            nptheta_dots = np.array(theta_dots)
+            self.rotation_change_indices = np.where(nptheta_dots[:-1] * nptheta_dots[1:] < 0)[0]
+            self.nbr_rotation_changes = len(self.rotation_change_indices)
+        
+        # Start and end indices for the slice of logs with exactly desired_nbr_rotation_changes:
+        start_RC_idx = self.np_random.integers(0, offset_nbr_rotation_changes) if offset_nbr_rotation_changes > 0 else 0
+        end_RC_idx = start_RC_idx + desired_nbr_rotation_changes-1 #would cause issue if desired_nbr_rotation_changes=0
+        assert end_RC_idx < len(self.rotation_change_indices)
+        if start_RC_idx==0 \
+        or self.rotation_change_indices[start_RC_idx-1]+1 == self.rotation_change_indices[start_RC_idx]:
+            start_iidx = max(self.rotation_change_indices[start_RC_idx]-1, 0)
+        else:
+            start_iidx = self.np_random.integers(self.rotation_change_indices[start_RC_idx-1]+1, self.rotation_change_indices[start_RC_idx])
+        if end_RC_idx==len(self.rotation_change_indices)-1 \
+        or self.rotation_change_indices[end_RC_idx]+1 == self.rotation_change_indices[end_RC_idx+1]:
+            end_iidx = min(self.rotation_change_indices[end_RC_idx]+1, len(infos))
+        else:
+            end_iidx = self.np_random.integers(self.rotation_change_indices[end_RC_idx]+1, self.rotation_change_indices[end_RC_idx+1])
+
+        # Regularisation:
+        self.nbr_rotation_changes = desired_nbr_rotation_changes
+        self.rotation_change_indices = [idx-start_iidx for idx in self.rotation_change_indices[start_RC_idx:end_RC_idx+1]]
+        assert len(self.rotation_change_indices) == desired_nbr_rotation_changes
+        nptheta_dots_final = np.array(theta_dots[start_iidx:end_iidx+1])
+        assert np.where(nptheta_dots_final[:-1] * nptheta_dots_final[1:] < 0)[0].shape[0] == desired_nbr_rotation_changes
 
         # Check last info contains logs:
         collated_info = {}
         collated_info['extras'] = {'logs': []}
-        for info in infos: 
+        for info in infos[start_iidx:end_iidx+1]: 
             for log in info['logs']: 
                 collated_info['extras']['logs'].append(log)
         collated_info['extras']['log'] = '\n'.join(['\n'.join(l) for l in collated_info['extras']['logs']])
@@ -119,6 +149,7 @@ class OfflineInvertedPendulumDIPhiREnv(gym.Env):
         self.info = collated_info
         self.info['predicted_answer'] = -1 
         self.info['groundtruth_answer'] = self.nbr_rotation_changes 
+        self.info['rotation_change_indices'] = self.rotation_change_indices
         
         action_mask=np.zeros((1, self.action_space.n))
         self.info['action_mask'] = action_mask
@@ -130,7 +161,7 @@ class OfflineInvertedPendulumDIPhiREnv(gym.Env):
         Returns +1 reward if the action corresponds to the number of times the pendulum rotated. 
         Else, returns -1.
         '''
-        predicted_nbr_rotation_changes = a
+        predicted_nbr_rotation_changes = a+1 # 0 being excluded, answers are at least 1
         self.info['predicted_answer'] = predicted_nbr_rotation_changes
         self.info['groundtruth_answer'] = self.nbr_rotation_changes 
         self.info['rotation_change_indices'] = self.rotation_change_indices

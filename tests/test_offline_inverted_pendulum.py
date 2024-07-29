@@ -20,17 +20,83 @@ def test_logs_inverted_pendulum():
                 break #env.reset()
         env.close()
 
+def test_distr_diphyr_offline_inverted_pendulum():
+        '''
+        Run multiple simulations and provides a histogram of the groundtruth_answer.
+        '''
+        # Open a file for logging
+        log_file = open("simulation_trace.log", "w")
+
+        env = gym.make('OfflineInvertedPendulumDIPhiREnv-v0',
+            max_nbr_actions=5, #10,
+            # DEPRECATED: max_nbr_timesteps=16,
+            timestep=0.0165,
+            frame_skip=16,
+            max_sentence_length=1024, #16384,
+            #output_dir='/run/user/1000/DIPhiR/inverted_pendulum', #os.path.join(os.getcwd(), 'data'),
+            #output_dir=os.path.join(os.getcwd(), 'data'),
+            obfuscate_logs=False,
+            show_phase_space_diagram=False,
+            save_metadata=False,
+            minimal_logs=True,
+        )
+        # Fixing the seed:
+        import wandb
+        wandb.init(project="diphyr-tests")
+        gt_answers = []
+        prompt_sizes = []
+        seed = 0 
+        for _ in tqdm(range(100)): #while True:
+          seed += 1
+          state, info = env.reset(**{'seed': seed})
+           
+          '''loglist = info['extras']['logs']
+          log = '\n'.join(['\n'.join(l) for l in loglist])
+          #print(log)
+          log_file.write(log) 
+        
+          print(f"Prompt BT shape is {info['prompt'].shape}")
+          '''
+          action = np.zeros(env.action_space.shape) 
+          #action = env.action_space.sample()
+          state, reward, done, truncated, info = env.step(action)
+          gt_answers.append(info['groundtruth_answer'])
+          prompt_sizes.append(info['prompt'].shape[-1])
+
+          print(f"Predicted vs groundtruth number of rotation changes: {info['predicted_answer']} vs {info['groundtruth_answer']}")
+          print(f'Angular velocity change timesteps: {info["rotation_change_indices"]}')
+          print('Environment reward: ', reward) 
+          #wandb.log({"reward": reward})
+        env.close()
+        
+        # Save histogram in WandB:
+        wandb.log({"histogram_labels": wandb.Histogram(gt_answers)})
+        wandb.log({"histogram_prompt_sizes": wandb.Histogram(prompt_sizes)})
+        
+        # Plot histogram: 
+        import matplotlib.pyplot as plt
+        plt.hist(gt_answers)
+        plt.show()
+        
+        # Plot histogram: 
+        plt.hist(prompt_sizes)
+        plt.show()
+
+        # Close the file
+        log_file.close()
+
 def test_resets_diphyr_offline_inverted_pendulum():
         # Open a file for logging
         log_file = open("simulation_trace.log", "w")
 
         env = gym.make('OfflineInvertedPendulumDIPhiREnv-v0',
             max_nbr_actions=5, #10,
-            max_nbr_timesteps=16,
+            # DEPRECATED: max_nbr_timesteps=16,
             timestep=0.0165,
             frame_skip=24,
             max_sentence_length=1024, #16384,
             #output_dir='/run/user/1000/DIPhiR/inverted_pendulum', #os.path.join(os.getcwd(), 'data'),
+            #output_dir=os.path.join(os.getcwd(), 'data'),
             obfuscate_logs=False,
             show_phase_space_diagram=False,
             save_metadata=False,
@@ -67,7 +133,7 @@ def test_logs_diphyr_offline_inverted_pendulum():
 
         env = gym.make('OfflineInvertedPendulumDIPhiREnv-v0',
             max_nbr_actions=5, #10,
-            max_nbr_timesteps=16,
+            # DEPRECATED: max_nbr_timesteps=16,
             timestep=0.0165,
             frame_skip=24,
             max_sentence_length=1024, #16384,
@@ -117,5 +183,6 @@ def test_obfuscated_logs_inverted_pendulum():
 if __name__ == '__main__':
     #test_logs_inverted_pendulum()
     #test_logs_diphyr_offline_inverted_pendulum()
-    test_resets_diphyr_offline_inverted_pendulum()
+    #test_resets_diphyr_offline_inverted_pendulum()
+    test_distr_diphyr_offline_inverted_pendulum()
     #test_obfuscated_logs_inverted_pendulum()
