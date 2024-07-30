@@ -49,8 +49,9 @@ class InvertedPendulumDIPhiREnv(BaseBulletEnv):
         if '{uid}' in output_dir:
             # Get the current user's UID and username
             uid = os.getuid()
+            tmpfs_path = self.output_dir.split('{uid}')[0] + str(uid) 
+            assert os.path.exists(tmpfs_path)
             self.output_dir = output_dir.format(uid=uid) # username = os.getlogin()
-            assert os.path.exists(self.output_dir)
 
         self.xml_dir = os.path.join(self.output_dir, 'xmls')
         self.phase_space_dir = os.path.join(self.output_dir, 'phase_spaces')
