@@ -72,7 +72,7 @@ class OfflineInvertedPendulumDIPhiREnv(gym.Env):
         
         self.options = [[
             f'Answer: {x} time{"s" if x>1 else ""}.'
-            for x in range(1, self.max_nbr_actions) # excluding 0 here
+            for x in range(1, self.max_nbr_actions+1) # excluding 0 here
             ],
         ]
         

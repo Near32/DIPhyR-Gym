@@ -38,7 +38,7 @@ def test_distr_diphyr_offline_inverted_pendulum():
             obfuscate_logs=False,
             show_phase_space_diagram=False,
             save_metadata=False,
-            minimal_logs=True,
+            minimal_logs=False,
         )
         # Fixing the seed:
         import wandb
