@@ -12,6 +12,8 @@ from diphyrgym.thirdparties.pybulletgym.pybulletgym.envs.roboschool.envs.env_bas
 from diphyrgym.thirdparties.pybulletgym.pybulletgym.envs.roboschool.robots.pendula.interted_pendulum import InvertedPendulum
 from diphyrgym.thirdparties.pybulletgym.pybulletgym.envs.roboschool.scenes.scene_bases import SingleRobotEmptyScene
 
+import os
+
 
 # Function to update the plot
 def update_plot(angles, velocities, fig, ax=None, line=None):
@@ -31,7 +33,7 @@ class InvertedPendulumDIPhiREnv(BaseBulletEnv):
     def __init__(
         self, 
         model_xml=os.path.join(os.path.dirname(__file__), "../xmls/inverted_pendulum.xml"), 
-        output_dir='/run/user/1000/DIPhiR/inverted_pendulum', 
+        output_dir='/run/user/{uid}/DIPhiR/inverted_pendulum', 
         show_phase_space_diagram=False,
         save_metadata=False,
         **kwargs,
@@ -44,6 +46,12 @@ class InvertedPendulumDIPhiREnv(BaseBulletEnv):
 
         self.model_xml = model_xml
         self.output_dir = output_dir
+        if '{uid}' in output_dir:
+            # Get the current user's UID and username
+            uid = os.getuid()
+            self.output_dir = output_dir.format(uid=uid) # username = os.getlogin()
+            assert os.path.exists(self.output_dir)
+
         self.xml_dir = os.path.join(self.output_dir, 'xmls')
         self.phase_space_dir = os.path.join(self.output_dir, 'phase_spaces')
         

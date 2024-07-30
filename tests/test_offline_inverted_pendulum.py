@@ -34,6 +34,7 @@ def test_distr_diphyr_offline_inverted_pendulum():
             'frame_skip':16,
             'max_sentence_length':1024, #16384,
             #output_dir='/run/user/1000/DIPhiR/inverted_pendulum', #os.path.join(os.getcwd(), 'data'),
+            'output_dir':'/run/user/{uid}/DIPhiR/inverted_pendulum', #os.path.join(os.getcwd(), 'data'),
             #output_dir=os.path.join(os.getcwd(), 'data'),
             'obfuscate_logs':False,
             'show_phase_space_diagram':False,
