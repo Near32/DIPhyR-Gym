@@ -115,6 +115,17 @@ class OfflineInvertedPendulumDIPhiREnv(gym.Env):
             self.nbr_rotation_changes = len(self.rotation_change_indices)
         
         # Start and end indices for the slice of logs with exactly desired_nbr_rotation_changes:
+        # WARNING: if start_RC_idx and end_RC_idx points to the same index, meaning that desired_nbr_rotation_changes=1,
+        # then start_iidx and end_iidx can be as close as 3 timesteps.
+        # Due to the high frameskip, it is possible that theta_dots[start_iidx]<0 and theta_dots[end_iidx]<0 too because
+        # only the one timestep in the middle has positive theta_dots, meaning that we actually have 2 rotation changes,
+        # instead of the expected one.
+        # To guard against this, we cut out the slice by decreasing end_iidx by 1.
+
+        # WARNING: still due to the high frequency, it is also possible that it occurs when desired_nbr_rotation_changes > 1.
+        # Indeed, the final timesteps may highlight rotation changes with only one timestep apart. It means that when we 
+        # we slice for end_iidx, it will be 1 timestep too far, because it will include one more rotation change than expected.
+        # To guard against this, we cut out the slice by decreasing end_iidx by 1, fortunately it is the same solution for all cases.
         start_RC_idx = self.np_random.integers(0, offset_nbr_rotation_changes) if offset_nbr_rotation_changes > 0 else 0
         end_RC_idx = start_RC_idx + desired_nbr_rotation_changes-1 #would cause issue if desired_nbr_rotation_changes=0
         assert end_RC_idx < len(self.rotation_change_indices)
@@ -134,7 +145,11 @@ class OfflineInvertedPendulumDIPhiREnv(gym.Env):
         self.rotation_change_indices = [idx-start_iidx for idx in self.rotation_change_indices[start_RC_idx:end_RC_idx+1]]
         assert len(self.rotation_change_indices) == desired_nbr_rotation_changes
         nptheta_dots_final = np.array(theta_dots[start_iidx:end_iidx+1])
-        assert np.where(nptheta_dots_final[:-1] * nptheta_dots_final[1:] < 0)[0].shape[0] == desired_nbr_rotation_changes
+        reg_required = False
+        if not np.where(nptheta_dots_final[:-1] * nptheta_dots_final[1:] < 0)[0].shape[0] == desired_nbr_rotation_changes:
+            assert end_iidx-1 > start_iidx
+            reg_required = True 
+            end_iidx -= 1 # WARNING : cf above
 
         # Check last info contains logs:
         collated_info = {}
@@ -143,7 +158,7 @@ class OfflineInvertedPendulumDIPhiREnv(gym.Env):
             for log in info['logs']: 
                 collated_info['extras']['logs'].append(log)
         collated_info['extras']['log'] = '\n'.join(['\n'.join(l) for l in collated_info['extras']['logs']])
-
+        
         # Add prompt+options:
         collated_info['prompt'] = self._generate_prompt_options(collated_info['extras']['log'])
         self.info = collated_info

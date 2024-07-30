@@ -27,22 +27,26 @@ def test_distr_diphyr_offline_inverted_pendulum():
         # Open a file for logging
         log_file = open("simulation_trace.log", "w")
 
-        env = gym.make('OfflineInvertedPendulumDIPhiREnv-v0',
-            max_nbr_actions=5, #10,
+        config = {
+            'max_nbr_actions':5, #10,
             # DEPRECATED: max_nbr_timesteps=16,
-            timestep=0.0165,
-            frame_skip=16,
-            max_sentence_length=1024, #16384,
+            'timestep':0.0165,
+            'frame_skip':16,
+            'max_sentence_length':1024, #16384,
             #output_dir='/run/user/1000/DIPhiR/inverted_pendulum', #os.path.join(os.getcwd(), 'data'),
             #output_dir=os.path.join(os.getcwd(), 'data'),
-            obfuscate_logs=False,
-            show_phase_space_diagram=False,
-            save_metadata=False,
-            minimal_logs=False,
-        )
+            'obfuscate_logs':False,
+            'show_phase_space_diagram':False,
+            'save_metadata':False,
+            'minimal_logs':False,
+            #'minimal_logs':True,
+        }
+        env = gym.make('OfflineInvertedPendulumDIPhiREnv-v0',
+            **config,
+        ) 
         # Fixing the seed:
         import wandb
-        wandb.init(project="diphyr-tests")
+        wandb.init(project="diphyr-tests", config=config)
         gt_answers = []
         prompt_sizes = []
         seed = 0 
@@ -69,17 +73,19 @@ def test_distr_diphyr_offline_inverted_pendulum():
           #wandb.log({"reward": reward})
         env.close()
         
-        # Save histogram in WandB:
-        wandb.log({"histogram_labels": wandb.Histogram(gt_answers)})
-        wandb.log({"histogram_prompt_sizes": wandb.Histogram(prompt_sizes)})
-        
         # Plot histogram: 
         import matplotlib.pyplot as plt
         plt.hist(gt_answers)
+        plt.title(f"Labels Distribution for FrameSkip={config['frame_skip']} & MinimalLogs={config['minimal_logs']}")
+        # Save histogram in WandB:
+        wandb.log({"histogram_labels": wandb.Image(plt)}) #wandb.Histogram(gt_answers)})
         plt.show()
         
         # Plot histogram: 
         plt.hist(prompt_sizes)
+        plt.title(f"Prompt size in bytes for FrameSkip={config['frame_skip']} & MinimalLogs={config['minimal_logs']}")
+        # Save histogram in WandB:
+        wandb.log({"histogram_prompt_sizes": wandb.Image(plt)}) #wandb.Histogram(prompt_sizes)})
         plt.show()
 
         # Close the file
