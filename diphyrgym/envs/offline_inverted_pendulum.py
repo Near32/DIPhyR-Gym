@@ -1,6 +1,7 @@
 from typing import Dict, List, Optional
 
 import os
+import re
 import gym
 from gym import spaces 
 from gym.utils import seeding 
@@ -40,6 +41,7 @@ class OfflineInvertedPendulumDIPhiREnv(gym.Env):
         max_sentence_length=16384,
         model_xml=os.path.join(os.path.dirname(__file__), "../xmls/inverted_pendulum.xml"), 
         output_dir='/run/user/{uid}/DIPhiR/inverted_pendulum', 
+        use_cot=False,
         **kwargs,
     ):
         super().__init__()
@@ -48,7 +50,8 @@ class OfflineInvertedPendulumDIPhiREnv(gym.Env):
         self.max_sentence_length = max_sentence_length 
         # Number of times the pendulum can change orientation:
         self.max_nbr_actions = max_nbr_actions
-        
+        self.use_cot = use_cot
+
         self.inverted_pendulum_env = InvertedPendulumDIPhiREnv(
             model_xml=model_xml, 
             output_dir=output_dir, 
@@ -60,16 +63,41 @@ class OfflineInvertedPendulumDIPhiREnv(gym.Env):
         self.observation_space = self.inverted_pendulum_env.observation_space
         self.action_space = spaces.Discrete(n=self.max_nbr_actions)
     
+    def generate_cot(self, logs):
+        cot_text = []
+        timestamps = np.asarray(re.findall(r'Time:\s+([\d\.]+)', logs))
+        pre_rc_tstamps = timestamps[self.final_rotation_change_indices]
+        post_rc_tstamps = timestamps[self.final_rotation_change_indices+1]
+        assert len(pre_rc_tstamps) == len(post_rc_tstamps)
+        for nidx, (pre_rc_ts, post_rc_ts) in enumerate(zip(pre_rc_tstamps, post_rc_tstamps)):
+            cot_text.append(f"From time={pre_rc_ts} to time={post_rc_ts}, the sign of the angular velocity of the pendulum over the y axis changes, meaning that there was a change of rotation direction.\n")
+            if nidx == 0:
+                nth_text = "This was the 1st change of rotation direction.\n"
+            elif nidx == 1:
+                nth_text = "This was the 2nd change of rotation direction.\n"
+            elif nidx == 2:
+                nth_text = "This was the 3rd change of rotation direction.\n"
+            else:
+                nth_text = f"This was the {nidx}-th change of rotation direction.\n"
+
+            cot_text.append(nth_text)
+
+        cot_text = ''.join(cot_text)    
+        return cot_text
+
     def _generate_prompt_options(self, logs):
         ''' 
         WARNING: excluding 0 again 
         '''
         prompt = f"[INST]\n{logs}\n"
-        prompt += f"Given the simulation trace above, answer the following question:"
+        prompt += f"Given the simulation trace above, answer the following question:\n"
         prompt += "Question: How many times did the pendulum change its direction of rotation?\n"
         prompt += "[/INST]\n\n"
         self.prompts = [ prompt ]
         
+        if self.use_cot:
+            prompt += self.generate_cot(logs)
+
         self.options = [[
             f'Answer: {x} time{"s" if x>1 else ""}.'
             for x in range(1, self.max_nbr_actions+1) # excluding 0 here
@@ -144,12 +172,15 @@ class OfflineInvertedPendulumDIPhiREnv(gym.Env):
         self.nbr_rotation_changes = desired_nbr_rotation_changes
         self.rotation_change_indices = [idx-start_iidx for idx in self.rotation_change_indices[start_RC_idx:end_RC_idx+1]]
         assert len(self.rotation_change_indices) == desired_nbr_rotation_changes
-        nptheta_dots_final = np.array(theta_dots[start_iidx:end_iidx+1])
+        self.nptheta_dots_final = np.array(theta_dots[start_iidx:end_iidx+1])
         reg_required = False
-        if not np.where(nptheta_dots_final[:-1] * nptheta_dots_final[1:] < 0)[0].shape[0] == desired_nbr_rotation_changes:
+        self.final_rotation_change_indices = np.where(self.nptheta_dots_final[:-1] * self.nptheta_dots_final[1:] < 0)[0]
+        if not self.final_rotation_change_indices.shape[0] == desired_nbr_rotation_changes:
             assert end_iidx-1 > start_iidx
             reg_required = True 
             end_iidx -= 1 # WARNING : cf above
+            self.nptheta_dots_final = self.nptheta_dots_final[:-1]
+            self.final_rotation_change_indices = self.final_rotation_change_indices[:-1]
 
         # Check last info contains logs:
         collated_info = {}
