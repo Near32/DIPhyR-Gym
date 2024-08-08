@@ -1,6 +1,28 @@
 import numpy as np
 import xml.etree.ElementTree as ET
 
+
+def STR2BT(sentences, max_sentence_length=0):
+    if isinstance(sentences, str):
+        sentences = [sentences]
+    btss = []
+    for s in sentences:
+        bts = np.asarray(list(bytes(s, 'utf-8')), dtype=np.uint8)
+        if max_sentence_length < bts.shape[0]:  max_sentence_length = bts.shape[0]
+        btss.append(bts)
+    ret = np.zeros((len(btss), max_sentence_length), dtype=np.uint8)
+    for bts_idx, bts, in enumerate(btss):
+        ret[bts_idx, :bts.shape[0]] = bts
+    return ret
+
+def BT2STR(bt):
+    sentences = []
+    for idx in range(bt.shape[0]):
+        sentence = "".join(map(chr,bt[idx].tolist())).replace('\x00','')
+        sentences.append(sentence)
+    return sentences
+
+
 # Function to randomize MuJoCo XML parameters
 # As it assumes the inertiafromgeom=True attribute in compiler tag,
 # this function should randomise some geom tags in order to randomise inertia parameters.

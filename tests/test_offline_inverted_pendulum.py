@@ -5,6 +5,8 @@ import gym
 import numpy as np
 from tqdm import tqdm
 
+from diphyrgym.utils import STR2BT, BT2STR
+
 
 def test_logs_inverted_pendulum():
         env = gym.make('InvertedPendulumSwingupPyBulletEnv-v0')
@@ -185,8 +187,8 @@ def test_cot_diphyr_offline_inverted_pendulum():
             obfuscate_logs=False,
             show_phase_space_diagram=True,
             save_metadata=False,
-            #minimal_logs=True,
-            minimal_logs=False,
+            minimal_logs=True,
+            #minimal_logs=False,
             use_cot=True,
         )
         # Fixing the seed:
@@ -198,6 +200,8 @@ def test_cot_diphyr_offline_inverted_pendulum():
         log_file.write(log) 
         
         print(f"Prompt BT shape is {info['prompt'].shape}")
+        print(BT2STR(info['prompt']))
+        
         action = np.zeros(env.action_space.shape) 
         #action = env.action_space.sample()
         state, reward, done, truncated, info = env.step(action)
@@ -230,6 +234,6 @@ if __name__ == '__main__':
     #test_logs_inverted_pendulum()
     #test_logs_diphyr_offline_inverted_pendulum()
     #test_resets_diphyr_offline_inverted_pendulum()
-    test_distr_diphyr_offline_inverted_pendulum()
-    #test_cot_diphyr_offline_inverted_pendulum()
+    #test_distr_diphyr_offline_inverted_pendulum()
+    test_cot_diphyr_offline_inverted_pendulum()
     #test_obfuscated_logs_inverted_pendulum()

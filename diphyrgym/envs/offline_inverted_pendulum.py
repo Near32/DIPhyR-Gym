@@ -9,27 +9,7 @@ import copy
 import numpy as np
 
 from diphyrgym.envs.inverted_pendulum import InvertedPendulumDIPhiREnv
-
-
-def STR2BT(sentences, max_sentence_length=0):
-    if isinstance(sentences, str):
-        sentences = [sentences]
-    btss = []
-    for s in sentences:
-        bts = np.asarray(list(bytes(s, 'utf-8')), dtype=np.uint8)
-        if max_sentence_length < bts.shape[0]:  max_sentence_length = bts.shape[0]
-        btss.append(bts)
-    ret = np.zeros((len(btss), max_sentence_length), dtype=np.uint8)
-    for bts_idx, bts, in enumerate(btss):
-        ret[bts_idx, :bts.shape[0]] = bts
-    return ret
-
-def BT2STR(bt):
-    sentences = []
-    for idx in range(bt.shape[0]):
-        sentence = "".join(map(chr,bt[idx].tolist())).replace('\x00','')
-        sentences.append(sentence)
-    return sentences
+from diphyrgym.utils import STR2BT, BT2STR
 
 
 class OfflineInvertedPendulumDIPhiREnv(gym.Env):
@@ -70,7 +50,7 @@ class OfflineInvertedPendulumDIPhiREnv(gym.Env):
         post_rc_tstamps = timestamps[self.final_rotation_change_indices+1]
         assert len(pre_rc_tstamps) == len(post_rc_tstamps)
         for nidx, (pre_rc_ts, post_rc_ts) in enumerate(zip(pre_rc_tstamps, post_rc_tstamps)):
-            cot_text.append(f"From time={pre_rc_ts} to time={post_rc_ts}, the sign of the angular velocity of the pendulum over the y axis changes, meaning that there was a change of rotation direction.\n")
+            cot_text.append(f"From time={pre_rc_ts} to time={post_rc_ts}, the sign of the angular velocity of the pole over the y axis changes, meaning that there was a change of rotation direction.\n")
             if nidx == 0:
                 nth_text = "This was the 1st change of rotation direction.\n"
             elif nidx == 1:
@@ -78,7 +58,7 @@ class OfflineInvertedPendulumDIPhiREnv(gym.Env):
             elif nidx == 2:
                 nth_text = "This was the 3rd change of rotation direction.\n"
             else:
-                nth_text = f"This was the {nidx}-th change of rotation direction.\n"
+                nth_text = f"This was the {nidx+1}-th change of rotation direction.\n"
 
             cot_text.append(nth_text)
 
@@ -89,15 +69,22 @@ class OfflineInvertedPendulumDIPhiREnv(gym.Env):
         ''' 
         WARNING: excluding 0 again 
         '''
+        '''
         prompt = f"[INST]\n{logs}\n"
         prompt += f"Given the simulation trace above, answer the following question:\n"
         prompt += "Question: How many times did the pendulum change its direction of rotation?\n"
         prompt += "[/INST]\n\n"
-        self.prompts = [ prompt ]
+        '''
+        prompt = f"[INST]\nBelow is the simulation trace of a cart pole system,"
+        prompt += f" followed by some instructions:\n\n{logs}\n\n"
+        prompt += f"Given the simulation trace for a cart pole system above, answer the following question:\n"
+        prompt += "Question: How many times did the pole change its direction of rotation?\n"
+        prompt += "[/INST]\n\n"
         
         if self.use_cot:
             prompt += self.generate_cot(logs)
 
+        self.prompts = [ prompt ]
         self.options = [[
             f'Answer: {x} time{"s" if x>1 else ""}.'
             for x in range(1, self.max_nbr_actions+1) # excluding 0 here
