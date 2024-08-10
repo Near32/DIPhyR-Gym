@@ -75,11 +75,11 @@ class OfflineInvertedPendulumDIPhiREnv(gym.Env):
         prompt += "Question: How many times did the pendulum change its direction of rotation?\n"
         prompt += "[/INST]\n\n"
         '''
-        prompt = f"[INST]\nBelow is the simulation trace of a cart pole system,"
+        prompt = f"Below is the simulation trace of a cart pole/inverted pendulum system,"
         prompt += f" followed by some instructions:\n\n{logs}\n\n"
         prompt += f"Given the simulation trace for a cart pole system above, answer the following question:\n"
         prompt += "Question: How many times did the pole change its direction of rotation?\n"
-        prompt += "[/INST]\n\n"
+        prompt += "\n\n"
         
         if self.use_cot:
             prompt += self.generate_cot(logs)
