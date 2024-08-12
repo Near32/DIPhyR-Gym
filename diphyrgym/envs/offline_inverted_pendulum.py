@@ -77,7 +77,7 @@ class OfflineInvertedPendulumDIPhiREnv(gym.Env):
         '''
         prompt = f"Below is the simulation trace of a cart pole/inverted pendulum system,"
         prompt += f" followed by some instructions:\n\n{logs}\n\n"
-        prompt += f"Given the simulation trace for a cart pole system above, answer the following question:\n"
+        prompt += f"You are an expert in the matter. Given the simulation trace for a cart pole system above, answer the following question to the best of your abilities:\n"
         prompt += "Question: How many times did the pole change its direction of rotation?\n"
         prompt += "\n\n"
         
