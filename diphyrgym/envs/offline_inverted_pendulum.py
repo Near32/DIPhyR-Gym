@@ -22,8 +22,23 @@ class OfflineInvertedPendulumDIPhiREnv(gym.Env):
         model_xml=os.path.join(os.path.dirname(__file__), "../xmls/inverted_pendulum.xml"), 
         output_dir='/run/user/{uid}/DIPhiR/inverted_pendulum', 
         use_cot=False,
+        notrace=False,
         **kwargs,
     ):
+        '''
+        max_nbr_actions: maximum number of times the pendulum can change its direction of rotation.
+        timestep: simulation timestep.
+        frame_skip: number of frameskips, in order to reduce the size of the simulation trace.
+        max_sentence_length: maximum length of the resulting prompt, UTF-8 encoded characters.
+        model_xml: path to the model xml, which should contain some extra variables to provide
+            the environment with boundary conditions, like initial angular and linear velocities.
+        output_dir: path to the directory where the xmls and cot files will be saved. It is best
+            to use a tmpfs path, so that the complexity of the environment can be reduced.
+        use_cot: whether to include an accurate rule-based-generated Chain-of-Thought reasoning
+            into the prompt.
+        notrace: whether to not include the simulation trace in the prompt. It is necessary to
+            use CoT if True.
+        '''
         super().__init__()
         self.timestep = timestep
         self.frame_skip = frame_skip
@@ -31,7 +46,8 @@ class OfflineInvertedPendulumDIPhiREnv(gym.Env):
         # Number of times the pendulum can change orientation:
         self.max_nbr_actions = max_nbr_actions
         self.use_cot = use_cot
-
+        self.notrace = notrace
+        
         self.inverted_pendulum_env = InvertedPendulumDIPhiREnv(
             model_xml=model_xml, 
             output_dir=output_dir, 
@@ -75,14 +91,24 @@ class OfflineInvertedPendulumDIPhiREnv(gym.Env):
         prompt += "Question: How many times did the pendulum change its direction of rotation?\n"
         prompt += "[/INST]\n\n"
         '''
-        prompt = f"Below is the simulation trace of a cart pole/inverted pendulum system,"
-        prompt += f" followed by some instructions:\n\n{logs}\n\n"
-        prompt += f"You are an expert in the matter. Given the simulation trace for a cart pole system above, answer the following question to the best of your abilities:\n"
-        prompt += "Question: How many times did the pole change its direction of rotation?\n"
-        prompt += "\n\n"
-        
-        if self.use_cot:
+        if self.notrace:
+            assert self.use_cot
+            prompt = f"Below is some information about the simulation of a cart pole/inverted pendulum system,"
+            prompt += f" followed by some instructions:\n"
             prompt += self.generate_cot(logs)
+            prompt += f"You are an expert in the matter. Given the information above, answer the following question to the best of your abilities.\n"
+            prompt += "Question: How many times did the pole change its direction of rotation?\n"
+            prompt += "\n"
+        else:
+            prompt = f"Below is the simulation trace of a cart pole/inverted pendulum system,"
+            prompt += f" followed by some instructions:"
+            prompt += f"\n\n{logs}\n\n"
+            prompt += f"You are an expert in the matter. Given the simulation trace for a cart pole system above, answer the following question to the best of your abilities:\n"
+            prompt += "Question: How many times did the pole change its direction of rotation?\n"
+            prompt += "\n"
+        
+            if self.use_cot:
+                prompt += self.generate_cot(logs)
 
         self.prompts = [ prompt ]
         self.options = [[
