@@ -9,29 +9,56 @@ from setuptools import setup, find_packages
 here = path.abspath(path.dirname(__file__))
 
 def read_requirements(file_path):
+    '''
+    Read requirements from file
+    '''
     with open(file_path, 'r') as file:
         return [line.strip() for line in file if line.strip() and not line.startswith('#')]
 
 def get_submodules_requirements():
+    '''
+    Get requirements from submodules (thirdparties) of the repo.
+    ''' 
     pybulletgym_requirements = read_requirements('./diphyrgym/thirdparties/pybulletgym/requirements.txt')
     return list(pybulletgym_requirements)
 
 class PreInstallCommand(install):
+    '''
+    commands to run before installing dependencies.
+    '''
     def run(self):
+        '''
+        install the submodules requirements.  
+        '''
         self.execute_submodule_commands()
         install.run(self)
 
 class PreManualDevInstallCommand(develop):
+    '''
+    commands to run before installing dependencies.
+    '''
     def run(self):
+        '''
+        install requirements manually. 
+        '''
         #self.execute_submodule_commands()
         develop.run(self)
 
 class PreDevelopCommand(develop):
+    '''
+    commands to run before installing dependinces for development.
+    '''
     def run(self):
+        '''
+        install the submodules requirements. 
+        ''' 
         self.execute_submodule_commands()
         develop.run(self)
 
 def execute_submodule_commands(self):
+    '''
+    init and update submodules.
+    '''
     subprocess.check_call(['git', 'submodule', 'init'])
     subprocess.check_call(['git', 'submodule', 'update'])
 
@@ -70,6 +97,7 @@ setup(
       'pandas',
       'matplotlib',
       'Pillow',
+      'pre-commit',
     ]+get_submodules_requirements(),
 
     python_requires=">=3.6",

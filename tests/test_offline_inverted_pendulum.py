@@ -9,6 +9,9 @@ from diphyrgym.utils import STR2BT, BT2STR
 
 
 def test_logs_inverted_pendulum():
+        '''
+        Run a single simulation and print the logs.
+        '''
         env = gym.make('InvertedPendulumSwingupPyBulletEnv-v0')
         env.render(mode='human')
         env.reset()
@@ -33,7 +36,7 @@ def test_distr_diphyr_offline_inverted_pendulum():
             'max_nbr_actions':5, #10,
             # DEPRECATED: max_nbr_timesteps=16,
             'timestep':0.0165,
-            'frame_skip':16,
+            'frame_skip':24,#16,
             'max_sentence_length':1024, #16384,
             #output_dir='/run/user/1000/DIPhiR/inverted_pendulum', #os.path.join(os.getcwd(), 'data'),
             'output_dir':'/run/user/{uid}/DIPhiR/inverted_pendulum', #os.path.join(os.getcwd(), 'data'),
@@ -41,8 +44,8 @@ def test_distr_diphyr_offline_inverted_pendulum():
             'obfuscate_logs':False,
             'show_phase_space_diagram':False,
             'save_metadata':False,
-            'minimal_logs':False,
-            #'minimal_logs':True,
+            #'minimal_logs':False,
+            'minimal_logs':True,
             'use_cot':True,
         }
         env = gym.make('OfflineInvertedPendulumDIPhiREnv-v0',
@@ -96,6 +99,11 @@ def test_distr_diphyr_offline_inverted_pendulum():
         log_file.close()
 
 def test_resets_diphyr_offline_inverted_pendulum():
+        '''
+        Investigate wheter the reset function takes the seed into account and its time complexity.
+        Its time complexity is affected by the output_dir parameter.
+        It is important to use a path under the tmp folder.
+        '''
         # Open a file for logging
         log_file = open("simulation_trace.log", "w")
 
@@ -138,6 +146,9 @@ def test_resets_diphyr_offline_inverted_pendulum():
         log_file.close()
 
 def test_logs_diphyr_offline_inverted_pendulum():
+        '''
+        Investigate logging.
+        '''
         # Open a file for logging
         log_file = open("simulation_trace.log", "w")
 
@@ -174,6 +185,9 @@ def test_logs_diphyr_offline_inverted_pendulum():
         log_file.close()
 
 def test_cot_diphyr_offline_inverted_pendulum():
+        '''
+        Investigates using CoT in the offline environment.
+        '''
         # Open a file for logging
         log_file = open("simulation_trace.log", "w")
 
@@ -215,6 +229,9 @@ def test_cot_diphyr_offline_inverted_pendulum():
 
 
 def test_obfuscated_logs_inverted_pendulum():
+        '''
+        Investigates obfuscation of the logs and prompts.
+        '''
         raise NotImplementedError
         env = gym.make('InvertedPendulumSwingupPyBulletEnv-v0', obfuscate_logs=True)
         env.render(mode='human')
@@ -234,6 +251,6 @@ if __name__ == '__main__':
     #test_logs_inverted_pendulum()
     #test_logs_diphyr_offline_inverted_pendulum()
     #test_resets_diphyr_offline_inverted_pendulum()
-    #test_distr_diphyr_offline_inverted_pendulum()
-    test_cot_diphyr_offline_inverted_pendulum()
+    test_distr_diphyr_offline_inverted_pendulum()
+    #test_cot_diphyr_offline_inverted_pendulum()
     #test_obfuscated_logs_inverted_pendulum()
