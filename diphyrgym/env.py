@@ -1,3 +1,6 @@
+'''
+Licence.
+'''
 import pybulletgym as pbg
 from pybulletgym.envs.roboschool.envs.env_bases import BaseBulletEnv
 from pybulletgym.envs.roboschool.scenes.scene_bases import SingleRobotEmptyScene
@@ -5,7 +8,13 @@ from diphyrgym.rigid_bodies_robot import RigidBodiesRobot
 
 
 class DIPhiREnv(BaseBulletEnv):
+  '''
+  DIPhiR environment.
+  '''
   def __init__(self, **kwargs):
+    '''
+    Generate a DIPhiREnv...
+    '''
     self.robot_name = 'rigid-bodies'
     #TODO: observation space is usually derive form the robot class...
     # Need to redefine it below for dict containing images and text.
@@ -33,6 +42,9 @@ class DIPhiREnv(BaseBulletEnv):
     )
     
   def create_single_player_scene(self, bullet_client):
+    '''
+    Create a single player scene.
+    '''
     return SingleRobotEmptyScene(bullet_client, gravity=9.81, timestep=0.0020, frame_skip=5)
 
     

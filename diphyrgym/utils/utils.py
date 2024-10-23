@@ -1,8 +1,35 @@
+'''
+Licence.
+'''
 import numpy as np
 import xml.etree.ElementTree as ET
+from PIL import Image
+
+
+def update_plot(angles, velocities, fig, ax=None, line=None):
+    '''
+    Function to update the plot
+    '''
+    if line is None:
+        assert ax is not None
+        line, = ax.plot(angles, velocities, 'g-')
+    else:
+        line.set_data(angles, velocities)
+    fig.canvas.draw()
+    img = Image.frombytes('RGB', fig.canvas.get_width_height(), fig.canvas.tostring_rgb())
+    return img
+
+def unwrap_angles(angles):
+    '''
+    Unwrap an angle in radians to be continuous.
+    '''
+    return np.unwrap(angles)
 
 
 def STR2BT(sentences, max_sentence_length=0):
+    '''
+    string to byte tensor.
+    '''
     if isinstance(sentences, str):
         sentences = [sentences]
     btss = []
@@ -16,6 +43,9 @@ def STR2BT(sentences, max_sentence_length=0):
     return ret
 
 def BT2STR(bt):
+    '''
+    Byte tensor to string.
+    '''
     sentences = []
     for idx in range(bt.shape[0]):
         sentence = "".join(map(chr,bt[idx].tolist())).replace('\x00','')
@@ -23,11 +53,6 @@ def BT2STR(bt):
     return sentences
 
 
-# Function to randomize MuJoCo XML parameters
-# As it assumes the inertiafromgeom=True attribute in compiler tag,
-# this function should randomise some geom tags in order to randomise inertia parameters.
-# The range of acceptable values should be specified with relevant attributes of the randomised
-# tag, e.g.: maxsize for geom with size attribute, or maxx for linear/angular velocity tags.
 def randomize_MJCF(
     base_filepath,
     output_filepath,
@@ -45,6 +70,13 @@ def randomize_MJCF(
     },
     np_random=np.random,
 ):
+    '''
+    Function to randomize MuJoCo XML parameters
+    As it assumes the inertiafromgeom=True attribute in compiler tag,
+    this function should randomise some geom tags in order to randomise inertia parameters.
+    The range of acceptable values should be specified with relevant attributes of the randomised
+    tag, e.g.: maxsize for geom with size attribute, or maxx for linear/angular velocity tags.
+    '''
     tree = ET.parse(base_filepath)
     root = tree.getroot()
     

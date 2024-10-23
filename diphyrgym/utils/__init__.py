@@ -1,2 +1,5 @@
+'''
+Licence.
+'''
 from .utils import *
 

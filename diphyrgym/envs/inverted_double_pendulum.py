@@ -1,3 +1,6 @@
+'''
+Licence.
+'''
 import os 
 
 from diphyrgym.thirdparties.pybulletgym.pybulletgym.envs.roboschool.envs.env_bases import BaseBulletEnv
@@ -5,20 +8,29 @@ from diphyrgym.thirdparties.pybulletgym.pybulletgym.envs.roboschool.robots.pendu
 from diphyrgym.thirdparties.pybulletgym.pybulletgym.envs.roboschool.scenes.scene_bases import SingleRobotEmptyScene
 
 
-class InvertedDoublePendulumDIPhiREnv(BaseBulletEnv):
+class InvertedDoublePendulumDIPhyREnv(BaseBulletEnv):
     def __init__(
         self, 
         model_xml=os.path.join(os.path.dirname(__file__), "../xmls/inverted_double_pendulum.xml"), 
         **kwargs,
     ):
+        '''
+        Generate an InvertedDoublePendulum environment with domain randomisation.
+        '''
         self.robot = InvertedDoublePendulum(model_xml=model_xml)
         BaseBulletEnv.__init__(self, self.robot, **kwargs)
         self.stateId = -1
 
     def create_single_player_scene(self, bullet_client):
+        '''
+        Create a single player scene with a stadium scene.
+        '''
         return SingleRobotEmptyScene(bullet_client, gravity=9.8, timestep=0.0165, frame_skip=1)
     
     def _reset(self, **kwargs):
+        '''
+        Resets the environment
+        '''
         if self.stateId >= 0:
             self._p.restoreState(self.stateId)
         r = BaseBulletEnv._reset(self)
@@ -27,6 +39,10 @@ class InvertedDoublePendulumDIPhiREnv(BaseBulletEnv):
         return r
 
     def _step(self, a):
+        '''
+        Steps the environment
+        :param a: action
+        '''
         self.robot.apply_action(a)
         self.scene.global_step()
         state = self.robot.calc_state()  # sets self.pos_x self.pos_y
@@ -43,4 +59,7 @@ class InvertedDoublePendulumDIPhiREnv(BaseBulletEnv):
         return state, sum(self.rewards), done, {}
 
     def camera_adjust(self):
+        '''
+        Adjust the camera look at point. 
+        '''
         self.camera.move_and_look_at(0,1.2,1.2, 0,0,0.5)

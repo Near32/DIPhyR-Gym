@@ -1,3 +1,6 @@
+'''
+Licence.
+'''
 import diphyrgym
 import diphyrgym.thirdparties.pybulletgym
 import os
@@ -5,6 +8,9 @@ import gym
 import numpy as np
 
 def test_logs_inverted_pendulum():
+        '''
+        Run a single simulation and print the logs.
+        '''
         env = gym.make('InvertedPendulumSwingupPyBulletEnv-v0')
         env.render(mode='human')
         env.reset()
@@ -19,10 +25,13 @@ def test_logs_inverted_pendulum():
         env.close()
 
 def test_logs_diphyr_inverted_pendulum():
+        '''
+        Run a single simulation and print the logs.
+        '''
         # Open a file for logging
         log_file = open("simulation_trace.log", "w")
 
-        env = gym.make('InvertedPendulumDIPhiREnv-v0',
+        env = gym.make('InvertedPendulumDIPhyREnv-v0',
             output_dir=os.path.join(os.getcwd(), 'data'),
             obfuscate_logs=False,
         )
@@ -51,6 +60,9 @@ def test_logs_diphyr_inverted_pendulum():
 
 
 def test_obfuscated_logs_inverted_pendulum():
+        '''
+        Run a single obfuscated simulation and print the logs.
+        '''
         env = gym.make('InvertedPendulumSwingupPyBulletEnv-v0', obfuscate_logs=True)
         env.render(mode='human')
         env.reset()
@@ -66,10 +78,13 @@ def test_obfuscated_logs_inverted_pendulum():
         env.close()
 
 def test_logs_diphyr_inverted_double_pendulum():
+        '''
+        Run a single simulation and print the logs.
+        '''
         # Open a file for logging
         log_file = open("simulation_trace.log", "w")
 
-        env = gym.make('InvertedDoublePendulumDIPhiREnv-v0',obfuscate_logs=False)
+        env = gym.make('InvertedDoublePendulumDIPhyREnv-v0',obfuscate_logs=False)
         env.render(mode='human')
         state, info = env.reset()
         loglist = info['logs']
@@ -93,6 +108,9 @@ def test_logs_diphyr_inverted_double_pendulum():
         log_file.close()
 
 def test_logs_inverted_double_pendulum():
+        '''
+        Run a single simulation and print the logs.
+        '''
         # Open a file for logging
         log_file = open("simulation_trace.log", "w")
 
@@ -120,6 +138,9 @@ def test_logs_inverted_double_pendulum():
         log_file.close()
 
 def test_obfuscated_logs_inverted_double_pendulum():
+        '''
+        Run a single simulation and print the logs.
+        '''
         # Open a file for logging
         log_file = open("simulation_trace.log", "w")
 
