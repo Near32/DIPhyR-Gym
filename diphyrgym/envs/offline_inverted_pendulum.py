@@ -84,6 +84,7 @@ class OfflineInvertedPendulumDIPhiREnv(gym.Env):
     def _generate_prompt_options(self, logs):
         ''' 
         WARNING: excluding 0 again 
+        Reset the timestamps in the log so that it starts at t=0.
         '''
         '''
         prompt = f"[INST]\n{logs}\n"
@@ -91,6 +92,12 @@ class OfflineInvertedPendulumDIPhiREnv(gym.Env):
         prompt += "Question: How many times did the pendulum change its direction of rotation?\n"
         prompt += "[/INST]\n\n"
         '''
+        timestamps = re.findall(r'Time:\s+([\d\.]+)', logs)
+        t0 = float(timestamps[0])
+        modified_timestamps = [float(t)-t0 for t in timestamps]
+        for original, modified in zip(timestamps, modified_timestamps):
+            logs = re.sub(f"Time:\s+{original}", f"Time: {modified:.3f}", logs, 1)
+
         if self.notrace:
             assert self.use_cot
             prompt = f"Below is some information about the simulation of a cart pole/inverted pendulum system,"
