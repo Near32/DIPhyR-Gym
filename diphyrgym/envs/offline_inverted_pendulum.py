@@ -341,6 +341,7 @@ class OfflineInvertedPendulumDIPhyREnv(gym.Env):
     ):
         ''' 
         Generates the prompt and options.
+        Reset the timestamps in the log so that it starts at t=0.
         :param prompt_type: str among:
             - 'pole' ;
             - 'cart' ;
@@ -351,6 +352,13 @@ class OfflineInvertedPendulumDIPhyREnv(gym.Env):
         :return: a list of strings, each string is a prompt option, 
         along with the groundtruth answer.
         '''
+        
+        timestamps = re.findall(r'Time:\s+([\d\.]+)', logs)
+        t0 = float(timestamps[0])
+        modified_timestamps = [float(t)-t0 for t in timestamps]
+        for original, modified in zip(timestamps, modified_timestamps):
+            logs = re.sub(f"Time:\s+{original}", f"Time: {modified:.3f}", logs, 1)
+        
         if '_time' in prompt_type \
         and ('pole_' in prompt_type \
         or 'cart_' in prompt_type):
@@ -390,9 +398,9 @@ class OfflineInvertedPendulumDIPhyREnv(gym.Env):
         :return: a list of strings, each string is a prompt option, along with the groundtruth answer.
         '''
         if rgb=='pole': 
-            change_indices = self.final_rotation_change_indices
+            change_indices = copy.deepcopy(self.final_rotation_change_indices)
         if rgb=='cart': 
-            change_indices = self.final_sliding_change_indices
+            change_indices = copy.deepcopy(self.final_sliding_change_indices)
         if shortlong=='shortest': 
             opt_fn = np.min
             argopt_fn = np.argmin
@@ -542,10 +550,10 @@ class OfflineInvertedPendulumDIPhyREnv(gym.Env):
         '''
         if rgb=='pole': 
             assert anglinear=='angular'
-            velocities = self.nptheta_dots_final
+            velocities = copy.deepcopy(self.nptheta_dots_final)
         if rgb=='cart': 
             assert anglinear=='linear'
-            velocities = self.npx_dots_final
+            velocities = copy.deepcopy(self.npx_dots_final)
         if minmax=='min': 
             opt_fn = np.min
             argopt_fn = np.argmin

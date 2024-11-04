@@ -58,7 +58,7 @@ def test_distr_diphyr_offline_inverted_pendulum():
             # DEPRECATED: max_nbr_timesteps=16,
             'timestep':0.0165,
             #'frame_skip':24,#16,
-            'frame_skip':16, #4
+            'frame_skip':8, #16, #4
             'max_sentence_length':1024, #16384,
             #output_dir='/run/user/1000/DIPhyR/inverted_pendulum', #os.path.join(os.getcwd(), 'data'),
             'output_dir':'/run/user/{uid}/DIPhyR/inverted_pendulum', #os.path.join(os.getcwd(), 'data'),
